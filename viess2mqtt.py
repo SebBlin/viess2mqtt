@@ -6,6 +6,7 @@ import datetime
 import telnetlib
 import re
 import paho.mqtt.client as mqtt
+import xml.etree.ElementTree as ET
 
 
 class vclient(object):
@@ -23,12 +24,51 @@ class vclient(object):
         else:
             self.telnet_client.read_until("vctrld>")
             self.telnet_client.write(cmd + '\n')
-            out = self.telnet_client.read_until(unit)
+            waitchar = vito.getwaitchain(vito.getunit(cmd))
+            if waitchar == None or waitchar == '':
+                waitchar = '\n'
+            out = self.telnet_client.read_until(waitchar)
             search = re.search(r'[0-9]*\.?[0-9]+', out)
             # return search.group(0)
-            self.mqtt_client.publish('/vito/' + cmd, payload=round(float(search.group(0)),2), 
-qos=0, 
-retain=False)
+            if search != None:
+                pl = round(float(search.group(0)),2)
+            else:
+                pl=out.rstrip()
+            self.mqtt_client.publish('/vito/' + cmd, payload=pl, qos=0, retain=False)
+
+class vserverconf(object):
+    '''vserverconf '''
+    def __init__(self, filename1, filename2):
+        self.tree = ET.parse(filename1)
+        self.unit ={}
+        for command in self.tree.iter('command'):
+            nodeunit = command.find('unit')
+            if nodeunit != None :
+                self.unit[command.get('name')]= nodeunit.text
+
+        self.tree2 = ET.parse(filename2)
+        self.unitstr ={}
+        for unit in self.tree2.iter('unit'):
+            abbrev = ''
+            entity = ''
+            if unit.find('abbrev') != None:
+                abbrev =  unit.find('abbrev').text
+            
+            if unit.find('entity') != None:
+                entity = unit.find('entity').text
+
+            if abbrev != '':
+                self.unitstr[abbrev] = entity
+
+    def getunit(self, val):
+        ''' retrieve unit from value'''
+        res = self.unit[val]
+        return res
+
+    def getwaitchain(self, val):
+        ''' retrieve unit from value'''
+        res = self.unitstr[val]
+        return res
 
 
 HOST = '192.168.0.103' # vcontrold telnet host
@@ -66,27 +106,27 @@ vals = ['timestamp',
          'getMischerM2', #	Déterminer la position du mélangeur M2
          'getMischerM3', #	Déterminer la position du mélangeur M3
          'getSolarStatusWW', #	Déterminer l'état de la suppression de recharge
-         'getTimerM1Mo', #	Temps de commutation lundi M1
-         'getTimerM1Di', #	Temps de commutation mardi M1
-         'getTimerM1Mi', #	Temps de commutation mercredi M1
-         'getTimerM1Do', #	Temps de commutation jeudi M1
-         'getTimerM1Fr', #	Temps de commutation vendredi M1
-         'getTimerM1Sa', #	Temps de commutation Samedi M1
-         'getTimerM1So', #	Temps de commutation Sunday M1
-         'getTimerM2Mo', #	Temps de commutation lundi M2
-         'getTimerM2Di', #	Temps de commutation mardi M2
-         'getTimerM2Mi', #	Temps de commutation mercredi M2
-         'getTimerM2Do', #	Temps de commutation jeudi M2
-         'getTimerM2Fr', #	Temps de commutation vendredi M2
-         'getTimerM2Sa', #	Temps de commutation Saturday M2
-         'getTimerM2So', #	Temps de commutation Sunday M2
-         'getTimerWWMo', #	Heure de commutation lundi eau chaude
-         'getTimerWWDi', #	Heure de commutation mardi eau chaude
-         'getTimerWWMi', #	Temps de commutation mercredi eau chaude
-         'getTimerWWDo', #	Temps de commutation jeudi eau chaude
-         'getTimerWWFr', #	Temps de commutation Vendredi eau chaude
-         'getTimerWWSa', #	Heure de commutation Samedi eau chaude
-         'getTimerWWSo', #	Temps de commutation dimanche eau chaude
+        # 'getTimerM1Mo', #	Temps de commutation lundi M1
+        # 'getTimerM1Di', #	Temps de commutation mardi M1
+        # 'getTimerM1Mi', #	Temps de commutation mercredi M1
+        # 'getTimerM1Do', #	Temps de commutation jeudi M1
+        # 'getTimerM1Fr', #	Temps de commutation vendredi M1
+        # 'getTimerM1Sa', #	Temps de commutation Samedi M1
+        # 'getTimerM1So', #	Temps de commutation Sunday M1
+        # 'getTimerM2Mo', #	Temps de commutation lundi M2
+        # 'getTimerM2Di', #	Temps de commutation mardi M2
+        # 'getTimerM2Mi', #	Temps de commutation mercredi M2
+        # 'getTimerM2Do', #	Temps de commutation jeudi M2
+        # 'getTimerM2Fr', #	Temps de commutation vendredi M2
+        # 'getTimerM2Sa', #	Temps de commutation Saturday M2
+        # 'getTimerM2So', #	Temps de commutation Sunday M2
+        # 'getTimerWWMo', #	Heure de commutation lundi eau chaude
+        # 'getTimerWWDi', #	Heure de commutation mardi eau chaude
+        # 'getTimerWWMi', #	Temps de commutation mercredi eau chaude
+        # 'getTimerWWDo', #	Temps de commutation jeudi eau chaude
+        # 'getTimerWWFr', #	Temps de commutation Vendredi eau chaude
+        # 'getTimerWWSa', #	Heure de commutation Samedi eau chaude
+        # 'getTimerWWSo', #	Temps de commutation dimanche eau chaude
         # 'getTimerZirkuMo', #	Heure de commutation lundi circu
         # 'getTimerZirkuDi', #	Temps de commutation mardi circ
         # 'getTimerZirkuMi', #	Temps de commutation mercredi cirque
@@ -166,9 +206,9 @@ vals = ['timestamp',
          'getDevType' #	Déterminer le type d'appareil de l'usine	
          ]
 
-unit = 'Grad Celsius'
-
 vc = vclient(HOST, PORT)
+vito = vserverconf('vito.xml','vcontrold.xml')
+
 
 for v in vals:
     vc.publish(v)
