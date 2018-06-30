@@ -34,6 +34,8 @@ class vclient(object):
                 pl = round(float(search.group(0)),2)
             else:
                 pl=out.rstrip()
+            print "cmd", cmd
+            print "retour", pl
             self.mqtt_client.publish('/vito/' + cmd, payload=pl, qos=0, retain=False)
 
 class vserverconf(object):
