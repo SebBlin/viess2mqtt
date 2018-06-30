@@ -20,7 +20,7 @@ class vclient(object):
         else:
             self.telnet_client.read_until("vctrld>")
             self.telnet_client.write(cmd + '\n')
-            out = self.telnet_client.read_until('Degrees Celsius')
+            out = self.telnet_client.read_until(unit)
             search = re.search(r'[0-9]*\.?[0-9]+', out)
             # return search.group(0)
             self.mqtt_client.publish('/vito/' + cmd, payload=round(float(search.group(0)),2), 
@@ -162,6 +162,8 @@ vals = ['timestamp',
         # 'setNiveauM2', #	Définir la caractéristique de chauffage de niveau M2
          'getDevType' #	Déterminer le type d'appareil de l'usine	
          ]
+
+unit = 'Grad Celsius'
 
 vc = vclient(HOST, PORT)
 
