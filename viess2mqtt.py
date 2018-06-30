@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import time
 import datetime
 import telnetlib
@@ -28,7 +31,7 @@ qos=0,
 retain=False)
 
 
-HOST = '192.168.88.3' # vcontrold telnet host
+HOST = '192.168.0.103' # vcontrold telnet host
 PORT = '3002' # vcontrold port
 
 vals = ['timestamp',
