@@ -209,7 +209,7 @@ vals = ['timestamp',
          ]
 
 vc = vclient(HOST, PORT)
-vito = vserverconf('vito.xml','vcontrold.xml')
+vito = vserverconf('/home/pi/viess2mqtt/vito.xml','/home/pi/viess2mqtt/vcontrold.xml')
 
 
 for v in vals:
