@@ -9,6 +9,7 @@ import paho.mqtt.client as mqtt
 import xml.etree.ElementTree as ET
 
 
+
 class vclient(object):
     '''vcontrol client'''
     def __init__(self, host, port):
