@@ -7,13 +7,16 @@ import telnetlib
 import re
 import paho.mqtt.client as mqtt
 import xml.etree.ElementTree as ET
+import configparser
 
 
 
 class vclient(object):
     '''vcontrol client'''
     def __init__(self, host, port):
-        self.telnet_client = telnetlib.Telnet(host, port)
+        print(host)
+        print(port)
+        self.telnet_client = telnetlib.Telnet(host, int(port))
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.connect(HOST, 1883, 60)
 
@@ -41,17 +44,17 @@ class vclient(object):
 
 class vserverconf(object):
     '''vserverconf '''
-    def __init__(self, filename1, filename2):
-        self.tree = ET.parse(filename1)
+    def __init__(self, vito_config_file, vctrld_configfile):
+        self.tree = ET.parse(vito_config_file)
         self.unit ={}
         for command in self.tree.iter('command'):
             nodeunit = command.find('unit')
             if nodeunit != None :
-                self.unit[command.get('name')]= nodeunit.text
-
-        self.tree2 = ET.parse(filename2)
+                self.unit[command.get('name')]= nodeunit.text      
+        self.tree = ET.parse(vctrld_configfile)
         self.unitstr ={}
-        for unit in self.tree2.iter('unit'):
+        self.tree.write('toto')
+        for unit in self.tree.iter('unit'):
             abbrev = ''
             entity = ''
             if unit.find('abbrev') != None:
@@ -73,9 +76,14 @@ class vserverconf(object):
         res = self.unitstr[val]
         return res
 
+config_file = "vc-client.conf"
+config = configparser.ConfigParser()
+config.read(config_file)
 
-HOST = '192.168.0.103' # vcontrold telnet host
-PORT = '3002' # vcontrold port
+HOST = config['Default']['HOST'] #192.168.0.103' # vcontrold telnet host
+PORT = config['Default']['PORT'] #   '3002' # vcontrold port
+vito_config_file = config['Default']['vito_config_file'] 
+vcontrol_config_file = config['Default']['vcontrol_config_file'] 
 
 vals = ['timestamp',
         'getTempA', #	Déterminer la température extérieure en degrés C
@@ -210,7 +218,7 @@ vals = ['timestamp',
          ]
 
 vc = vclient(HOST, PORT)
-vito = vserverconf('/home/pi/viess2mqtt/vito.xml','/home/pi/viess2mqtt/vcontrold.xml')
+vito = vserverconf(vito_config_file,vcontrol_config_file)
 
 
 for v in vals:
