@@ -27,40 +27,47 @@ class vclient(object):
         if len(retour_lignes) == 2 and retour_lignes[1]== "vctrld>":
             retour = retour_lignes[0]
             unit = self.get_unit(cmd)
-            if retour.endswith(unit):
+            if retour is not None and unit is not None and retour.endswith(unit):
                 # on a la bonne unité en fin de ligne
                 val = retour[0:-len(unit)-1]
                 return val
+            else:
+                return retour
         else:
             # retour multilignes
-            toto=0
+            return retour_cmd
         
     def get_unit(self,cmd):
         res2 = self.vito_tree.find(".//command[@name='"+cmd+"']")
         unit = res2.find('unit').text 
         res = self.vc_tree.find(".//unit/[abbrev='"+unit+"']")
-        return res.find('entity').text
+        entity = res.find('entity')
+        if entity is not None:
+            return entity.text
+        else:
+            return None
 
 def check_uri(uri):
     if uri[0]=='/':
         uri = uri[1:]
         print (uri)
     res2 = vc.vito_tree.find(".//command[@name='"+uri+"']")
-    if res2 :
-        return True
+    if res2 is not None:
+        return uri
     else:
-        return False
+        return None
 
 
 def vcserver(environ, start_response):
     status = '200 OK'  # HTTP Status
     headers = [('Content-type', 'text/plain; charset=utf-8')]  # HTTP Headers
     start_response(status, headers)
-    uri = environ['PATH_INFO']
-    if check_uri(uri):
-        return vc.getValue('getTempA')
+    cmd = environ['PATH_INFO']
+    uri = check_uri(cmd)
+    if uri is not None:
+        return vc.getValue(uri)
     else:
-        return [b"Unknown command" + uri]
+        return [b"Unknown command" + cmd]
 
 
 config_file = "vc-client.conf"
