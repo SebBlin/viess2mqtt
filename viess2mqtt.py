@@ -27,6 +27,8 @@ class vclient(object):
             waitchar = vito.getwaitchain(vito.getunit(cmd))
             if waitchar == None or waitchar == '':
                 waitchar = '\n'
+            print "cmd", cmd
+            print "wait", waitchar
             out = self.telnet_client.read_until(waitchar)
             search = re.search(r'[0-9]*\.?[0-9]+', out)
             # return search.group(0)
@@ -73,15 +75,15 @@ class vserverconf(object):
         return res
 
 
-HOST = '192.168.0.103' # vcontrold telnet host
+HOST = '192.168.1.103' # vcontrold telnet host
 PORT = '3002' # vcontrold port
 
 vals = ['timestamp',
         'getTempA', #	Déterminer la température extérieure en degrés C
-         'getTempWWist', #	Déterminer la température de l'eau chaude en degrés C
-         'getTempWWsoll', #	Déterminer la température de l'eau chaude désirée en degrés C
-         'getTempKist', #	Déterminer la température de la chaudière en degrés C
-         'getTempKsoll', #	Déterminer la température cible de la chaudière en degrés C
+        'getTempWWist', #	Déterminer la température de l'eau chaude en degrés C
+        'getTempWWsoll', #	Déterminer la température de l'eau chaude désirée en degrés C
+        'getTempKist', #	Déterminer la température de la chaudière en degrés C
+        'getTempKsoll', #	Déterminer la température cible de la chaudière en degrés C
         # 'getTempVListM1', #	Déterminer la température de départ M1 en degrés C
         # 'getTempVListM2', #	Déterminer la température de départ M2 en degrés C
         # 'getTempVLsollM1', #	Déterminer la température de départ réglée M1 en degrés C
@@ -89,25 +91,25 @@ vals = ['timestamp',
         # 'getTempVLsollM3', #	Déterminer la température de départ réglée M3 en degrés C
          'getTempKol', #	Déterminer la température du capteur en degrés C
          'getTempSpu', #	Déterminer la température de stockage ci-dessous en degrés C
-         'getTempRaumNorSollM1', #	Déterminer la température ambiante souhaitée M1 en degrés C
+        ## 'getTempRaumNorSollM1', #	Déterminer la température ambiante souhaitée M1 en degrés C
         # 'setTempRaumNorSollM1', #	Réglez la température de consigne de la pièce normale M1 en degrés C
-         'getTempRaumNorSollM2', #	Déterminer la température ambiante normale M2 en degrés C
-         'getTempRaumRedSollM1', #	Déterminer la température de consigne de la pièce réduit M1 en degrés C
+        ## 'getTempRaumNorSollM2', #	Déterminer la température ambiante normale M2 en degrés C
+        ## 'getTempRaumRedSollM1', #	Déterminer la température de consigne de la pièce réduit M1 en degrés C
         # 'setTempRaumRedSollM1', #	Réglez la température ambiante désirée réduite M1 en degrés C
-         'getTempRaumRedSollM2', #	Déterminer la température de consigne de la pièce réduit M2 en degrés C
-         'getBrennerStatus', #	Déterminer l'état du brûleur
-         'getBrennerStarts', #	Déterminer le début du brûleur
+        ## 'getTempRaumRedSollM2', #	Déterminer la température de consigne de la pièce réduit M2 en degrés C
+        'getBrennerStatus', #	Déterminer l'état du brûleur
+        'getBrennerStarts', #	Déterminer le nombre de démarrage du brûleur
         # 'getBrennerStunden1', #	Déterminer le niveau des heures de brûleur 1
         # 'getBrennerStunden2', #	Déterminer les heures de brûleur étape 2
-         'getPumpeStatusM1', #	Déterminer l'état de la pompe M1
-         'getPumpeStatusSp', #	Déterminer l'état de la pompe de chargement de stockage
-         'getPumpeStatusZirku', #	Déterminer l'état de la pompe de circulation
-         'getPumpeStatusSolar', #	Déterminer l'état de la pompe de circulation solaire
+        ## 'getPumpeStatusM1', #	Déterminer l'état de la pompe M1
+        ## 'getPumpeStatusSp', #	Déterminer l'état de la pompe de chargement de stockage
+        ## 'getPumpeStatusZirku', #	Déterminer l'état de la pompe de circulation
+        ## 'getPumpeStatusSolar', #	Déterminer l'état de la pompe de circulation solaire
         # 'getPumpeStatusM2', #	Déterminer l'état de la pompe M2
-         'getMischerM1', #	Déterminer la position du mélangeur M1
-         'getMischerM2', #	Déterminer la position du mélangeur M2
-         'getMischerM3', #	Déterminer la position du mélangeur M3
-         'getSolarStatusWW', #	Déterminer l'état de la suppression de recharge
+        ## 'getMischerM1', #	Déterminer la position du mélangeur M1
+        ## 'getMischerM2', #	Déterminer la position du mélangeur M2
+        ## 'getMischerM3', #	Déterminer la position du mélangeur M3
+        ## 'getSolarStatusWW', #	Déterminer l'état de la suppression de recharge
         # 'getTimerM1Mo', #	Temps de commutation lundi M1
         # 'getTimerM1Di', #	Temps de commutation mardi M1
         # 'getTimerM1Mi', #	Temps de commutation mercredi M1
@@ -136,12 +138,12 @@ vals = ['timestamp',
         # 'getTimerZirkuFr', #	Temps de commutation vendredi cirque
         # 'getTimerZirkuSa', #	Période de commutation Saturday cirque
         # 'getTimerZirkuSo', #	Période de commutation Sunday Cirque
-         'getBetriebArtM1', #	Mode de fonctionnement M1
-         'getBetriebArtM2', #	Mode de fonctionnement M2
-         'getBetriebSparM1', #	Mode de fonctionnement Spar M1
-         'getBetriebSparM2', #	Mode de fonctionnement Spar M2
-         'getBetriebPartyM1', #	Mode de fonctionnement Party M1
-         'getBetriebPartyM2', #	Mode de fonctionnement Party M2
+        ## 'getBetriebArtM1', #	Mode de fonctionnement M1
+        ## 'getBetriebArtM2', #	Mode de fonctionnement M2
+        ## 'getBetriebSparM1', #	Mode de fonctionnement Spar M1
+        ## 'getBetriebSparM2', #	Mode de fonctionnement Spar M2
+        ## 'getBetriebPartyM1', #	Mode de fonctionnement Party M1
+        ## 'getBetriebPartyM2', #	Mode de fonctionnement Party M2
         # 'getSolarStunden', #	Heures de fonctionnement solaire
         # 'getSolarLeistung', #	Puissance solaire globale
         # 'getStatusFrostM1', #	Avertissement de gel M1
@@ -205,11 +207,11 @@ vals = ['timestamp',
         # 'setNeigungM2', #	Réglez l'inclinaison caractéristique de chauffage M2
         # 'setNiveauM1', #	Définir la caractéristique de chauffage de niveau M1
         # 'setNiveauM2', #	Définir la caractéristique de chauffage de niveau M2
-         'getDevType' #	Déterminer le type d'appareil de l'usine	
+        ## 'getDevType' #	Déterminer le type d'appareil de l'usine	
          ]
 
 vc = vclient(HOST, PORT)
-vito = vserverconf('vito.xml','vcontrold.xml')
+vito = vserverconf('/home/pi/viess2mqtt/vito.xml','/home/pi/viess2mqtt/vcontrold.xml')
 
 
 for v in vals:
