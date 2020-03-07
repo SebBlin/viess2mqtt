@@ -82,15 +82,10 @@ config_file = "vc-client.conf"
 config = configparser.ConfigParser()
 config.read(config_file)
 
-<<<<<<< HEAD
-HOST = '192.168.1.103' # vcontrold telnet host
-PORT = '3002' # vcontrold port
-=======
 HOST = config['Default']['HOST'] #192.168.0.103' # vcontrold telnet host
 PORT = config['Default']['PORT'] #   '3002' # vcontrold port
 vito_config_file = config['Default']['vito_config_file'] 
 vcontrol_config_file = config['Default']['vcontrol_config_file'] 
->>>>>>> f92716645f77e59eb4663da4ab374d1b614926bd
 
 vals = ['timestamp',
         'getTempA', #	Déterminer la température extérieure en degrés C
@@ -225,11 +220,7 @@ vals = ['timestamp',
          ]
 
 vc = vclient(HOST, PORT)
-<<<<<<< HEAD
-vito = vserverconf('/home/pi/viess2mqtt/vito.xml','/home/pi/viess2mqtt/vcontrold.xml')
-=======
 vito = vserverconf(vito_config_file,vcontrol_config_file)
->>>>>>> f92716645f77e59eb4663da4ab374d1b614926bd
 
 
 for v in vals:
