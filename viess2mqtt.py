@@ -8,7 +8,23 @@ import re
 import paho.mqtt.client as mqtt
 import xml.etree.ElementTree as ET
 import configparser
+import jwt
+import ssl
+import json
 
+
+def create_jwt(project_id, private_key_file, algorithm):
+    """Create a JWT (https://jwt.io) to establish an MQTT connection."""
+    token = {
+        'iat': datetime.datetime.utcnow(),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+        'aud': project_id
+    }
+    with open(private_key_file, 'r') as f:
+        private_key = f.read()
+    print('Creating JWT using {} from private key file {}'.format(
+        algorithm, private_key_file))
+    return jwt.encode(token, private_key, algorithm=algorithm)
 
 
 class vclient(object):
@@ -20,11 +36,12 @@ class vclient(object):
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.connect(HOST, 1883, 60)
 
-    def publish(self, cmd):
+    def get_value(self, cmd):
         '''Query & Publish'''
         if cmd == 'timestamp':
             timestamp = int(time.mktime(datetime.datetime.now().timetuple())) #unix time
-            self.mqtt_client.publish('/vito/' + cmd, payload=timestamp, qos=0, retain=False)	    
+            self.mqtt_client.publish('/vito/' + cmd, payload=timestamp, qos=0, retain=False)	
+            pl=timestamp
         else:
             self.telnet_client.read_until("vctrld>")
             self.telnet_client.write(cmd + '\n')
@@ -42,7 +59,11 @@ class vclient(object):
                 pl=out.rstrip()
             print "cmd", cmd
             print "retour", pl
-            self.mqtt_client.publish('/vito/' + cmd, payload=pl, qos=0, retain=False)
+        return pl
+
+
+    def publish(self, cmd, value):
+            self.mqtt_client.publish('/vito/' + cmd, payload=value, qos=0, retain=False)
 
 class vserverconf(object):
     '''vserverconf '''
@@ -219,9 +240,46 @@ vals = ['timestamp',
         ## 'getDevType' #	Déterminer le type d'appareil de l'usine	
          ]
 
+
+config_file = "/home/pi/viess2mqtt/vc-client.conf"
+config = configparser.ConfigParser()
+config.read(config_file)
+
+HOST = config['Default']['HOST'] #192.168.0.103' # vcontrold telnet host
+PORT = config['Default']['PORT'] #   '3002' # vcontrold port
+vito_config_file = config['Default']['vito_config_file'] 
+vcontrol_config_file = config['Default']['vcontrol_config_file'] 
+project_id = config['Default']['project_id']
+cloud_region = config['Default']['cloud_region']
+registry_id = config['Default']['registry_id']
+device_id = config['Default']['device_id']
+private_key_file = config['Default']['private_key_file']
+algorithm = config['Default']['algorithm']
+ca_certs = config['Default']['ca_certs']
+
 vc = vclient(HOST, PORT)
 vito = vserverconf(vito_config_file,vcontrol_config_file)
 
 
-for v in vals:
-    vc.publish(v)
+
+client = mqtt.Client(
+        client_id='projects/{}/locations/{}/registries/{}/devices/{}'.format(
+            project_id,
+            cloud_region,
+            registry_id,
+            device_id))
+client.username_pw_set(username='unused',password=create_jwt(project_id,private_key_file,algorithm))
+client.tls_set(ca_certs=ca_certs, tls_version=ssl.PROTOCOL_TLSv1_2)
+client.connect('mqtt.googleapis.com', 8883)
+
+dic_payload = {}
+for cmd in vals:
+    value = vc.get_value(cmd)
+    dic_payload[cmd]=value
+    res = vc.publish(cmd,value)
+
+payload = json.dumps(dic_payload)
+print('Publishing payload', payload)
+mqtt_telemetry_topic = '/devices/{}/events'.format(device_id)
+res = client.publish(mqtt_telemetry_topic, payload, qos=1)
+print (res)
