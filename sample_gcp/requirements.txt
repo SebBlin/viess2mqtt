@@ -1,2 +1,2 @@
-pyjwt==1.7.1
+pyjwt==2.15.0
 paho-mqtt==1.4.0
